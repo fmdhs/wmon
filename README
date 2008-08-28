@@ -6,7 +6,16 @@ The monitoring app is made up of a config/startup file in site_mon/fmdhs_mon.rb 
 
 INSTALL
 
-To get the app running the following folders need to be created:
+Required gems:
+
+gem install camping --source http://code.whytheluckystiff.net
+gem install mechanize
+gem install rubyful_soup
+gem install log4r
+gem install rufus-scheduler
+
+
+The following folders need to be created:
 
 tmp
 public
@@ -26,4 +35,3 @@ Apache:
       Allow from all 
     </Directory>
 </VirtualHost>
-
