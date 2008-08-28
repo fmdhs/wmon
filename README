@@ -1,0 +1,29 @@
+This application is used to display the contents of the websites monitoring log file. The website monitor is also included.
+
+The config.ru is a Camping application with some extra code to make it a Rack enabled Camping application. Rack was used as the Passenger/mod_rails module for Apache also works with Rack applications. 
+
+The monitoring app is made up of a config/startup file in site_mon/fmdhs_mon.rb and a bunch of libraries in 'lib'. It is pretty straightforward what needs to be done, to add a new website to monitor, by looking in fmdhs_mon.rb.
+
+INSTALL
+
+To get the app running the following folders need to be created:
+
+tmp
+public
+log
+
+Apache:
+
+<VirtualHost wmon.meddent.uwa.edu.au:80>
+    ServerName websites.localhost
+    DocumentRoot "<path to app>/public"
+    ErrorLog "<path to app>/log/error.log"
+
+    <Directory "<path to app>/public">
+      Options FollowSymLinks
+      AllowOverride None
+      Order allow,deny
+      Allow from all 
+    </Directory>
+</VirtualHost>
+
