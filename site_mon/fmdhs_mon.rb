@@ -4,6 +4,7 @@ require "rufus/scheduler"
 include Log4r
 
 LOG_FILE = './log/fmdhs.log'
+MAX_LOAD_TIME = 5
 
 # Main FarCry instance
 class FacultySite
@@ -22,13 +23,9 @@ end
 class SphSite
   URL = "http://www.sph.uwa.edu.au"
   def self.monitor
-    max_load_time = 3 # in seconds
     browser = Browser.new
-    start_time = Time.now
     browser.goto URL
-    end_time = Time.now
     raise "is not able to load home page" unless browser.text.include?("Faculty of Medicine, Dentistry and Health Sciences: School of Population Health")
-    raise "is taking > #{max_load_time} seconds to load" if (end_time - start_time) > max_load_time
   end
 end
 
@@ -59,7 +56,7 @@ class PaedsSite
   end
 end
 
-def RaineSite
+class RaineSite
   URL = "http://www.raine.uwa.edu.au/"
   def self.monitor
     browser = Browser.new
@@ -153,7 +150,7 @@ trap("INT") do
 end
 
 scheduler.start
-monitered_websites = [SphSite,FacultySite,SupportSite,DekiSite,OptionsSite,WirfSite,LeiSite,HealthRightSite,MedicineSite,OhcwaSite,PaedsSite,RaineSite]
+monitered_websites = [SphSite,FacultySite,SupportSite,DekiSite,OptionsSite,WirfSite,LeiSite,HealthRightSite,MedicineSite,OhcwaSite,PaedsSite]
 
 def notify(website,message)
   $sitelog.error "#{website.const_get('URL')}, #{message}" if message.include? "Unable to navigate"
@@ -170,7 +167,8 @@ scheduler.schedule_every "60s", :first_in => "5s" do
       start_time = Time.now
       site.monitor
       end_time = Time.now
-      # Uncomment if 'up' websites is required => large log!
+      notify(site, "is taking > #{MAX_LOAD_TIME} seconds to load") if (end_time - start_time) > MAX_LOAD_TIME
+      # Uncomment if log of 'up' websites is required => large log!
       notify site, "is up (load time #{end_time - start_time} secs)"
     rescue => ex
       notify site, ex.message
