@@ -32,6 +32,33 @@ class SphSite
   end
 end
 
+class OhcwaSite
+  URL = "http://www.ohcwa.uwa.edu.au"
+  def self.monitor
+    browser = Browser.new
+    browser.goto URL
+    raise "is not able to load home page" unless browser.text.include?("http://www.ohcwa.uwa.edu.au/go/dentistry")
+  end
+end
+
+class MedicineSite
+  URL = "http://www.medicine.uwa.edu.au"
+  def self.monitor
+    browser = Browser.new
+    browser.goto URL
+    raise "is not able to load home page" unless browser.text.include?("School of Medicine and Pharmacology")
+  end
+end
+
+class PaedsSite
+  URL = "http://www.paediatrics.uwa.edu.au"
+  def self.monitor
+    browser = Browser.new
+    browser.goto URL
+    raise "is not able to load home page" unless browser.text.include?("School of Paediatrics and Child Health")
+  end
+end
+
 # Web applications
 class SupportSite
   URL = "https://support.meddent.uwa.edu.au"
