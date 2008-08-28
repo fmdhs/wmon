@@ -59,6 +59,15 @@ class PaedsSite
   end
 end
 
+def RaineSite
+  URL = "http://www.raine.uwa.edu.au/"
+  def self.monitor
+    browser = Browser.new
+    browser.goto URL
+    raise "is not able to load home page" unless browser.text.include?("Raine Medical Research Foundation")
+  end  
+end
+
 # Web applications
 class SupportSite
   URL = "https://support.meddent.uwa.edu.au"
@@ -144,7 +153,7 @@ trap("INT") do
 end
 
 scheduler.start
-monitered_websites = [SphSite,FacultySite,SupportSite,DekiSite,OptionsSite,WirfSite,LeiSite,HealthRightSite]
+monitered_websites = [SphSite,FacultySite,SupportSite,DekiSite,OptionsSite,WirfSite,LeiSite,HealthRightSite,MedicineSite,OhcwaSite,PaedsSite,RaineSite]
 
 def notify(website,message)
   $sitelog.error "#{website.const_get('URL')}, #{message}" if message.include? "Unable to navigate"
@@ -158,9 +167,11 @@ $sitelog.info "starting SiteMon..."
 scheduler.schedule_every "60s", :first_in => "5s" do
   monitered_websites.each do |site|
     begin
+      start_time = Time.now
       site.monitor
+      end_time = Time.now
       # Uncomment if 'up' websites is required => large log!
-      notify site, "is up"
+      notify site, "is up (load time #{end_time - start_time} secs)"
     rescue => ex
       notify site, ex.message
     end
