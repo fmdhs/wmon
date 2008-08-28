@@ -50,6 +50,15 @@ class MedicineSite
   end
 end
 
+class RaineSite
+  URL = "http://www.raine.uwa.edu.au"
+  def self.monitor
+    browser = Browser.new
+    browser.goto URL
+    raise "is not able to load home page" unless browser.text.include?("Raine Medical Research Foundation")
+  end
+end
+
 class PaedsSite
   URL = "http://www.paediatrics.uwa.edu.au"
   def self.monitor
@@ -57,15 +66,6 @@ class PaedsSite
     browser.goto URL
     raise "is not able to load home page" unless browser.text.include?("School of Paediatrics and Child Health")
   end
-end
-
-def RaineSite
-  URL = "http://www.raine.uwa.edu.au/"
-  def self.monitor
-    browser = Browser.new
-    browser.goto URL
-    raise "is not able to load home page" unless browser.text.include?("Raine Medical Research Foundation")
-  end  
 end
 
 # Web applications
