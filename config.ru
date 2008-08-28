@@ -53,12 +53,12 @@ module Website::Views
       html do
         head do
           text "<META HTTP-EQUIV='Refresh' CONTENT='10'>"
-          title 'page'
+          title 'FMDHS Website Monitor Log'
           link :rel => 'stylesheet', :type => 'text/css',
                :href => '/styles.css', :media => 'screen'
         end
         body do
-          h1.header { "FMDHS Website Monitor Log" }
+          h1.header { a "FMDHS Website Monitor Log", :href => R(Index) }
           div.content do
             self << yield
           end
