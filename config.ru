@@ -52,7 +52,7 @@ module Website::Views
     def layout
       html do
         head do
-          text "<META HTTP-EQUIV='Refresh' CONTENT='10'>"
+          text "<meta http-equiv='Refresh' content='60'>"
           title 'FMDHS Website Monitor Log'
           link :rel => 'stylesheet', :type => 'text/css',
                :href => '/styles.css', :media => 'screen'
