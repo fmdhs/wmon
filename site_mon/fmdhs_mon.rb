@@ -75,6 +75,15 @@ class SupportSite
   end
 end
 
+class SurveysSite
+  URL = "https://surveys.meddent.uwa.edu.au"
+  def self.monitor
+    browser = Browser.new
+    browser.goto URL
+    raise "is not able to load home page" if browser.button(:name, "ImgSubmit").nil?
+  end
+end
+
 class DekiSite
   URL = "https://deki.meddent.uwa.edu.au"
   def self.monitor
@@ -150,7 +159,7 @@ trap("INT") do
 end
 
 scheduler.start
-monitered_websites = [SphSite,FacultySite,SupportSite,DekiSite,OptionsSite,WirfSite,LeiSite,HealthRightSite,MedicineSite,OhcwaSite,PaedsSite]
+monitered_websites = [SphSite,FacultySite,SupportSite,DekiSite,OptionsSite,WirfSite,LeiSite,HealthRightSite,MedicineSite,OhcwaSite,PaedsSite,SurveysSite]
 
 def notify(website,message)
   $sitelog.error "#{website.const_get('URL')}, #{message}" if message.include? "Unable to navigate"
