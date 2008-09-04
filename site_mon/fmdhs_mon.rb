@@ -5,7 +5,7 @@ require "rufus/scheduler"
 include Log4r
 
 LOG_FILE = './log/fmdhs.log'
-MAX_LOAD_TIME = 1
+MAX_LOAD_TIME = 5
 
 # Main FarCry instance
 class FacultySite
@@ -26,13 +26,7 @@ class SphSite
   URL = "http://www.sph.uwa.edu.au"
   def self.monitor
     browser = Browser.new
-    browser.read_timeout MAX_LOAD_TIME
-    Timeout::Error
-    begin
-      browser.goto URL
-    rescue Timeout::Error
-      raise "is taking > #{MAX_LOAD_TIME} seconds to load"
-    end
+    browser.goto URL
     raise "is not able to load home page" unless browser.text.include?("Faculty of Medicine, Dentistry and Health Sciences: School of Population Health")
   end
 end
@@ -180,8 +174,8 @@ end
 $sitelog = Logger.new 'sitelog'
 
 # Uncomment for output to log file
-# format = PatternFormatter.new(:pattern => "[ %d ] %l\t %m")
-# $sitelog.add FileOutputter.new('fileOutputter', :filename => LOG_FILE, :trunc => false, :formatter => format)
+#format = PatternFormatter.new(:pattern => "[ %d ] %l\t %m")
+#$sitelog.add FileOutputter.new('fileOutputter', :filename => LOG_FILE, :trunc => false, :formatter => format)
 
 # Uncomment for stdout to console
 $sitelog.outputters = Outputter.stdout
@@ -207,17 +201,19 @@ def notify(website,message)
 end
 
 $sitelog.info "starting SiteMon..."
-scheduler.schedule_every "180s", :first_in => "5s" do
+scheduler.schedule_every "15s", :first_in => "5s" do
   monitered_websites.each do |site|
     begin
-      start_time = Time.now
-      site.monitor
-      end_time = Time.now
+#      Timeout.timeout(5) do
+#        start_time = Time.now
+        site.monitor
+#        stop_time = Time.now
+#      end
       # Uncomment if log of 'up' websites is required => large log!
-      notify site, "is up (load time #{end_time - start_time} secs)"
-    rescue Timeout::Error
-      notify(site, "is taking > #{MAX_LOAD_TIME} seconds to load")
-      puts "Timeout error"
+#      notify site, "is up (load time #{end_time - start_time} secs)"
+#    rescue Timeout::Error
+#      notify site, "is taking > #{MAX_LOAD_TIME} seconds to load"
+#      retry
     rescue => ex
       notify site, ex.message
     end
