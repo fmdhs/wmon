@@ -1,16 +1,18 @@
 require "./lib/hui"
+require 'timeout'
 require "log4r"
 require "rufus/scheduler"
 include Log4r
 
 LOG_FILE = './log/fmdhs.log'
-MAX_LOAD_TIME = 5
+MAX_LOAD_TIME = 1
 
 # Main FarCry instance
 class FacultySite
   URL = "http://www.meddent.uwa.edu.au"
   def self.monitor
     browser = Browser.new
+    browser.read_timeout MAX_LOAD_TIME
     browser.goto URL
     # Navigate a few links
     browser.link(:text, "Teaching & Learning").click
@@ -24,7 +26,13 @@ class SphSite
   URL = "http://www.sph.uwa.edu.au"
   def self.monitor
     browser = Browser.new
-    browser.goto URL
+    browser.read_timeout MAX_LOAD_TIME
+    Timeout::Error
+    begin
+      browser.goto URL
+    rescue Timeout::Error
+      raise "is taking > #{MAX_LOAD_TIME} seconds to load"
+    end
     raise "is not able to load home page" unless browser.text.include?("Faculty of Medicine, Dentistry and Health Sciences: School of Population Health")
   end
 end
@@ -113,6 +121,24 @@ class OptionsSite
   end
 end
 
+class WebmailSite
+  URL = "https://webmail.meddent.uwa.edu.au"
+  def self.monitor
+    browser = Browser.new
+    browser.goto URL
+    raise "is not able to get to login page" if browser.button(:name, "SubmitCreds").nil?
+  end
+end
+
+class FacboardSite
+  URL = "http://www.meddent.uwa.edu.au/facboard/admin/"
+  def self.monitor
+    browser = Browser.new
+    browser.goto URL
+    raise "is not able to get to login page" if browser.button(:name, "Login").nil?
+  end
+end
+
 # External hosted websites
 class WirfSite
   URL = "http://www.wirf.com.au"
@@ -154,11 +180,11 @@ end
 $sitelog = Logger.new 'sitelog'
 
 # Uncomment for output to log file
-format = PatternFormatter.new(:pattern => "[ %d ] %l\t %m")
-$sitelog.add FileOutputter.new('fileOutputter', :filename => LOG_FILE, :trunc => false, :formatter => format)
+# format = PatternFormatter.new(:pattern => "[ %d ] %l\t %m")
+# $sitelog.add FileOutputter.new('fileOutputter', :filename => LOG_FILE, :trunc => false, :formatter => format)
 
 # Uncomment for stdout to console
-#$sitelog.outputters = Outputter.stdout
+$sitelog.outputters = Outputter.stdout
 
 scheduler = Rufus::Scheduler.new
 
@@ -170,7 +196,7 @@ end
 scheduler.start
 monitered_websites = [SphSite,FacultySite,SupportSite,DekiSite,OptionsSite,
                       WirfSite,LeiSite,HealthRightSite,MedicineSite,OhcwaSite,
-                      PaedsSite,SurveysSite,RcsSite]
+                      PaedsSite,SurveysSite,RcsSite,WebmailSite,FacboardSite]
 
 def notify(website,message)
   $sitelog.error "#{website.const_get('URL')}, #{message}" if message.include? "Unable to navigate"
@@ -187,9 +213,11 @@ scheduler.schedule_every "180s", :first_in => "5s" do
       start_time = Time.now
       site.monitor
       end_time = Time.now
-      notify(site, "is taking > #{MAX_LOAD_TIME} seconds to load") if (end_time - start_time) > MAX_LOAD_TIME
       # Uncomment if log of 'up' websites is required => large log!
       notify site, "is up (load time #{end_time - start_time} secs)"
+    rescue Timeout::Error
+      notify(site, "is taking > #{MAX_LOAD_TIME} seconds to load")
+      puts "Timeout error"
     rescue => ex
       notify site, ex.message
     end
