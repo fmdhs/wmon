@@ -5,7 +5,8 @@ require "rufus/scheduler"
 include Log4r
 
 LOG_FILE = './log/fmdhs.log'
-MAX_LOAD_TIME = 5
+MAX_LOAD_TIME = 2
+TIMEOUT = 10
 
 # Main FarCry instance
 class FacultySite
@@ -188,32 +189,33 @@ trap("INT") do
 end
 
 scheduler.start
-monitered_websites = [SphSite,FacultySite,SupportSite,DekiSite,OptionsSite,
-                      WirfSite,LeiSite,HealthRightSite,MedicineSite,OhcwaSite,
-                      PaedsSite,SurveysSite,RcsSite,WebmailSite,FacboardSite]
+monitered_websites = [SphSite,FacultySite,SupportSite,DekiSite,OptionsSite,WirfSite,
+                      LeiSite,HealthRightSite,MedicineSite,OhcwaSite,PaedsSite,
+                      SurveysSite,RcsSite,WebmailSite,FacboardSite]
 
+# Record various messages (with log tag) based on the error message string
 def notify(website,message)
   $sitelog.error "#{website.const_get('URL')}, #{message}" if message.include? "Unable to navigate"
-  $sitelog.warn "#{website.const_get('URL')} #{message}" if message.include? "is not able to"
+  $sitelog.error "#{website.const_get('URL')}, #{message}" if message.include? "is timing out"
+  $sitelog.warn "#{website.const_get('URL')} #{message}" if message.include? "is not able"
   $sitelog.warn "#{website.const_get('URL')} #{message}" if message.include? "is taking"
   $sitelog.warn "#{website.const_get('URL')} #{message}" if message.include? "not found"
   $sitelog.info "#{website.const_get('URL')} #{message}" if message.include? "is up"
 end
 
 $sitelog.info "starting SiteMon..."
-scheduler.schedule_every "15s", :first_in => "5s" do
+scheduler.schedule_every "180s", :first_in => "5s" do
   monitered_websites.each do |site|
     begin
-#      Timeout.timeout(5) do
-#        start_time = Time.now
+      Timeout.timeout TIMEOUT do
+        start_time = Time.now
         site.monitor
-#        stop_time = Time.now
-#      end
-      # Uncomment if log of 'up' websites is required => large log!
-#      notify site, "is up (load time #{end_time - start_time} secs)"
-#    rescue Timeout::Error
-#      notify site, "is taking > #{MAX_LOAD_TIME} seconds to load"
-#      retry
+        end_time = Time.now
+        notify site, "is up (load time #{end_time - start_time} secs)."
+      end
+      notify(site, "is taking > #{MAX_LOAD_TIME} seconds to load.") if (end_time - start_time) > MAX_LOAD_TIME
+    rescue Timeout::Error
+      notify(site, "is timing out. We tried for #{TIMEOUT} secs.")
     rescue => ex
       notify site, ex.message
     end
