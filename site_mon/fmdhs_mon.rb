@@ -273,7 +273,7 @@ trap("INT") do
 end
 
 scheduler.start
-monitored_websites = [FacultySite,SphSite,OhcwaSite,RcsSite,MedicineSite,PaedsSite,  
+monitored_websites = [FacultySite,SphSite,OhcwaSite,RcsSite,MedicineSite,PaedsSite,
                         LsbfgSite,WirfSite,LeiSite,HealthRightSite,DataLinkageSite,
                         AnaesthesiaSite,RaineSite, RecordsSite,CactiSite,SupportSite,
                         InterviewsSite,InterviewersSite,AssocStaffSite,SurveysSite,
@@ -291,7 +291,7 @@ end
 
 $sitelog.info "starting SiteMon..."
 scheduler.schedule_every "180s", :first_in => "5s" do
-  monitered_websites.each do |site|
+  monitored_websites.each do |site|
     begin
       timeout MAX_TIME do
         start_time = Time.now
